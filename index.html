@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренажёр задания 13 ОГЭ</title>
+  <meta name="description" content="Онлайн-тренажёр задания 13 ОГЭ по информатике: 13.1 — презентация в LibreOffice Impress, 13.2 — текстовый документ в LibreOffice Writer. Материалы для скачивания и автоматическая проверка файла по критериям ФИПИ.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23289628'/%3E%3Crect x='6' y='8' width='20' height='13' rx='1.5' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M16 21v4M11 25h10' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" title="На главную">
+      <svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"/><path d="M7 8h18v13H7zM16 21v4M11 25h10"/></svg>
+      <div class="brand-text">
+        <strong>Офис</strong>
+        <span>тренажёр задания 13 ОГЭ</span>
+      </div>
+    </a>
+    <nav class="modes" role="tablist" aria-label="Вариант задания">
+      <button role="tab" id="mode-131" aria-selected="true">13.1 — презентация</button>
+      <button role="tab" id="mode-132" aria-selected="false">13.2 — текст</button>
+    </nav>
+    <span class="spacer"></span>
+    <a class="btn ghost link-other" href="../oge14/" title="Тренажёр задания 14: электронные таблицы">14<span>&nbsp;— Таблицы</span></a>
+    <a class="btn ghost link-other" href="../oge15/" title="Тренажёр задания 15: исполнитель Робот">15<span>&nbsp;— Робот</span></a>
+    <a class="btn ghost link-other" href="../oge16/" title="Тренажёр задания 16: программа на Python">16<span>&nbsp;— Python</span></a>
+    <button class="btn ghost" id="btn-help" title="Справка по заданию 13 и тренажёру (F1)">Справка</button>
+  </header>
+
+  <!-- ================= 13.1 Презентация ================= -->
+  <main class="layout layout-file" id="view-131">
+    <section class="side" aria-label="Задание 13.1">
+      <div class="panel">
+        <div class="task-picker">
+          <button class="btn icon" id="btn-prev-131" title="Предыдущая тема" aria-label="Предыдущая тема">‹</button>
+          <select id="topic-select" aria-label="Тема презентации"></select>
+          <button class="btn icon" id="btn-next-131" title="Следующая тема" aria-label="Следующая тема">›</button>
+        </div>
+        <article class="task-card">
+          <div class="task-meta">
+            <span class="chip lvl-1">Задание 13.1 · презентация</span>
+            <span class="chip chip-score" id="status-131" hidden></span>
+          </div>
+          <h1 id="title-131"></h1>
+          <p class="task-source" id="source-131"></p>
+          <div id="text-131" class="task-text"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="side side-check" aria-label="Материалы и проверка">
+      <div class="panel">
+        <div class="step">
+          <h2><span class="step-num">1</span> Скачайте материалы</h2>
+          <button class="btn primary big" id="btn-materials">Скачать каталог <span id="materials-name" class="dl-name"></span></button>
+          <div class="pics" id="pics" aria-label="Иллюстрации из каталога"></div>
+          <p class="muted small">В архиве — текст по теме и шесть иллюстраций, как в каталоге на экзамене. Распакуйте его, создайте презентацию в LibreOffice Impress и сохраните её в формате <b>.odp</b>.</p>
+        </div>
+
+        <div class="step">
+          <h2><span class="step-num">2</span> Загрузите презентацию на проверку</h2>
+          <label class="drop" id="drop-131">
+            <input type="file" id="file-131" accept=".odp,.pptx,.ppt,application/vnd.oasis.opendocument.presentation,application/vnd.openxmlformats-officedocument.presentationml.presentation">
+            <span class="drop-icon" aria-hidden="true">⇪</span>
+            <span><b>Выберите файл</b> или перетащите его сюда</span>
+            <span class="muted small">.odp — файл проверяется прямо в браузере и никуда не отправляется</span>
+          </label>
+        </div>
+
+        <section id="result-131" class="check" hidden aria-live="polite"></section>
+
+        <div class="btn-row">
+          <button class="btn" id="btn-howto-131" aria-expanded="false">Как сделать в Impress</button>
+          <button class="btn" id="btn-mistakes-131" aria-expanded="false">Частые ошибки</button>
+        </div>
+        <div id="howto-131" class="solution howto" hidden>
+          <ol>
+            <li><b>Формат слайда.</b> Слайд → Свойства слайда → вкладка «Слайд» → Формат: <b>«Экран 16:9»</b>, ориентация альбомная. В новых версиях LibreOffice это формат по умолчанию.</li>
+            <li><b>Титульный слайд.</b> Макет «Титульный слайд»: в заголовок впишите тему, в подзаголовок — сведения об авторе (на экзамене — идентификационный номер). Выделите рамку заголовка и задайте размер <b>40 пт</b>, подзаголовка — <b>24 пт</b>.</li>
+            <li><b>Слайды 2 и 3.</b> Слайд → Новый слайд, макет «Только заголовок». Заголовок — <b>24 пт</b>. Текстовые блоки добавьте кнопкой «Вставить текстовое поле» (или клавиша F2), размер текста — <b>20 пт</b>.</li>
+            <li><b>Изображения.</b> Вставка → Изображение, выберите файл из каталога. Размер меняйте, потянув за <b>угловой</b> маркер (при необходимости с клавишей Shift) — так пропорции сохранятся.</li>
+            <li><b>Расположение</b> — как на макетах: на втором слайде две пары «картинка — текст» в шахматном порядке, на третьем — два ряда по три объекта. Объекты не должны накладываться друг на друга.</li>
+            <li><b>Шрифт</b> — один тип на всю презентацию, например Liberation Sans или Arial везде. Проще всего выделить все объекты слайда (Ctrl+A) и выбрать шрифт сразу для всех.</li>
+            <li>Анимацию и эффекты смены слайдов не добавляйте. Сохраните файл: Файл → Сохранить как → тип <b>«Презентация ODF (.odp)»</b>.</li>
+          </ol>
+        </div>
+        <div id="mistakes-131" class="note" hidden>
+          <ul class="tight">
+            <li>Картинку растянули за боковой маркер — она искажена (сплющена или вытянута).</li>
+            <li>Заголовок и текст разного типа шрифта: например, заголовок Liberation Serif, а текст Liberation Sans.</li>
+            <li>Размер текста 18 или 32 пт по умолчанию — его забыли поменять на 20/24/40 пт.</li>
+            <li>Текст не поместился в рамку макета «Заголовок, содержимое», и LibreOffice уменьшил шрифт автоподбором.</li>
+            <li>Два блока текста набраны в одной рамке — это один текстовый блок, а нужно два.</li>
+            <li>Остался лишний пустой слайд или добавлен эффект смены слайдов.</li>
+            <li>Жёлтый или светло-серый текст на белом фоне — сливается с фоном.</li>
+          </ul>
+        </div>
+
+        <details class="rules">
+          <summary>Как оценивается задание 13.1</summary>
+          <ul>
+            <li><b>2 балла</b> — презентация из трёх слайдов по теме, соответствует требованиям по структуре, шрифту и размещению изображений.</li>
+            <li><b>1 балл</b> — три слайда, на втором и третьем есть иллюстрации и текст по теме, но допущена одна ошибка в структуре, выборе шрифта или размещении изображений (однотипные ошибки считаются за одну систематическую). Или презентация из двух слайдов без ошибок.</li>
+            <li><b>0 баллов</b> — в остальных случаях, а также если файл сохранён не в формате .odp.</li>
+            <li>Тренажёр проверяет то, что можно проверить автоматически. Соответствие текста и картинок теме оценивает эксперт — тренажёр только подсказывает, если текст не похож на тему.</li>
+          </ul>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= 13.2 Текстовый документ ================= -->
+  <main class="layout layout-file" id="view-132" hidden>
+    <section class="side" aria-label="Задание 13.2">
+      <div class="panel">
+        <div class="task-picker">
+          <button class="btn icon" id="btn-prev-132" title="Предыдущий образец" aria-label="Предыдущий образец">‹</button>
+          <select id="sample-select" aria-label="Образец текста"></select>
+          <button class="btn icon" id="btn-next-132" title="Следующий образец" aria-label="Следующий образец">›</button>
+        </div>
+        <article class="task-card">
+          <div class="task-meta">
+            <span class="chip lvl-2">Задание 13.2 · текстовый документ</span>
+            <span class="chip chip-score" id="status-132" hidden></span>
+          </div>
+          <h1 id="title-132"></h1>
+          <p class="task-source" id="source-132"></p>
+          <div id="text-132" class="task-text"></div>
+          <div class="doc-wrap"><div class="doc-page" id="doc-sample" aria-label="Образец"></div></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="side side-check" aria-label="Проверка">
+      <div class="panel">
+        <div class="step">
+          <h2><span class="step-num">1</span> Наберите текст по образцу</h2>
+          <p class="muted small">Создайте документ в LibreOffice Writer, наберите текст и таблицу, точно воспроизведя оформление образца, и сохраните файл в формате <b>.odt</b>. Копировать текст со страницы нельзя — на экзамене его набирают вручную.</p>
+        </div>
+
+        <div class="step">
+          <h2><span class="step-num">2</span> Загрузите документ на проверку</h2>
+          <label class="drop" id="drop-132">
+            <input type="file" id="file-132" accept=".odt,.docx,.doc,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+            <span class="drop-icon" aria-hidden="true">⇪</span>
+            <span><b>Выберите файл</b> или перетащите его сюда</span>
+            <span class="muted small">.odt — файл проверяется прямо в браузере и никуда не отправляется</span>
+          </label>
+        </div>
+
+        <section id="result-132" class="check" hidden aria-live="polite"></section>
+
+        <div class="btn-row">
+          <button class="btn" id="btn-howto-132" aria-expanded="false">Как сделать в Writer</button>
+          <button class="btn" id="btn-mistakes-132" aria-expanded="false">Частые ошибки</button>
+        </div>
+        <div id="howto-132" class="solution howto" hidden>
+          <ol>
+            <li><b>Шрифт.</b> Выделите всё (Ctrl+A) и задайте размер <b>14 пт</b>. Набирайте текст, не нажимая Enter в конце строк — Enter только в конце абзаца.</li>
+            <li><b>Заголовок</b> набирайте прописными буквами (Caps Lock), выровняйте по центру (Ctrl+E) и выделите, как в образце: полужирный — Ctrl+B, курсив — Ctrl+I, подчёркнутый — Ctrl+U.</li>
+            <li><b>Абзац текста:</b> Формат → Абзац → «Отступы и интервалы»: отступ «Первая строка» — <b>1 см</b>, междустрочный интервал — «Одинарный» или «Полуторный». Выравнивание по ширине — Ctrl+J. Пробелами отступ не делайте.</li>
+            <li><b>Таблица:</b> Таблица → Вставить таблицу, укажите число столбцов и строк. Таблица → Свойства → вкладка «Таблица»: выравнивание <b>«По центру»</b> и ширина <b>меньше</b> ширины текста (например, 12 см).</li>
+            <li><b>Текст в ячейках:</b> заголовок таблицы и второй столбец — по центру, первый столбец — по левому краю.</li>
+            <li><b>Интервал до и после таблицы</b> — от 14 до 24 пт (от 0,5 до 0,85 см). Задайте его в абзаце перед таблицей («После абзаца»: 0,5 см) и в абзаце после неё («Перед абзацем»: 0,5 см). Пустые абзацы для этого не используйте.</li>
+            <li>Сохраните файл: Файл → Сохранить как → тип <b>«Текстовый документ ODF (.odt)»</b>.</li>
+          </ol>
+        </div>
+        <div id="mistakes-132" class="note" hidden>
+          <ul class="tight">
+            <li>Интервал до или после таблицы сделан пустым абзацем (лишним нажатием Enter).</li>
+            <li>Отступ первой строки сделан пробелами или клавишей Tab.</li>
+            <li>В конце каждой строки нажат Enter — текст разбит на много абзацев.</li>
+            <li>Таблица растянута на всю ширину страницы или не выровнена по центру.</li>
+            <li>Размер шрифта в таблице остался 12 пт.</li>
+            <li>Выделено не то слово: полужирный вместо курсива, пропущено подчёркивание.</li>
+            <li>Заголовок набран строчными буквами.</li>
+          </ul>
+        </div>
+
+        <details class="rules">
+          <summary>Как оценивается задание 13.2</summary>
+          <ul>
+            <li>Проверяются два элемента: <b>основной текст</b> (с заголовком) и <b>таблица</b>. Для каждого есть список требований — см. результаты проверки.</li>
+            <li><b>2 балла</b> — все требования выполнены; в основном тексте допускается не более пяти ошибок набора, в таблице — не более трёх.</li>
+            <li><b>1 балл</b> — в каждом элементе не более трёх нарушений требований; или один элемент выполнен полностью верно, а второй отсутствует или в нём больше трёх нарушений; или всё верно, но есть существенные расхождения с образцом (например, столбцы таблицы явно непропорциональны).</li>
+            <li><b>0 баллов</b> — в остальных случаях, а также если файл сохранён не в формате .odt.</li>
+          </ul>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="help" class="help">
+    <div class="help-head">
+      <h2>Справка</h2>
+      <button class="btn ghost" id="btn-help-close" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="help-body">
+      <h3>Что такое задание 13</h3>
+      <p>Задание 13 выполняется на компьютере и оценивается в <b>2 балла</b>. Участник выбирает <b>одно</b> из двух заданий:</p>
+      <ul>
+        <li><b>13.1</b> — создать презентацию из трёх слайдов по материалам из каталога (текст и картинки). Ответ — файл <b>.odp</b>.</li>
+        <li><b>13.2</b> — набрать в текстовом редакторе текст с таблицей, точно воспроизведя оформление образца. Ответ — файл <b>.odt</b>.</li>
+      </ul>
+      <p>На экзамене используется LibreOffice (или другой офисный пакет, который сохраняет файлы OpenDocument). Файл в другом формате — например, .pptx или .docx — получает 0 баллов.</p>
+
+      <h3>Какое задание выбрать</h3>
+      <p>Попробуйте оба в тренажёре. 13.2 требует аккуратности: текст набирается вручную, а в оформлении много мелких требований. В 13.1 больше свободы, но нужно следить за размерами шрифта, пропорциями картинок и расположением объектов по макету.</p>
+
+      <h3>Как работать с тренажёром</h3>
+      <ul>
+        <li><b>13.1:</b> выберите тему, скачайте каталог с материалами, сделайте презентацию в LibreOffice Impress, сохраните её и загрузите файл на проверку.</li>
+        <li><b>13.2:</b> выберите образец, наберите его в LibreOffice Writer, сохраните и загрузите файл.</li>
+        <li>Тренажёр выставит баллы по критериям ФИПИ и покажет, что исправить. Файл никуда не отправляется — всё проверяется прямо в браузере.</li>
+        <li>Ссылку на тему или образец можно отправить ученикам: адрес страницы меняется при выборе, например <code>#13.1/bear</code> или <code>#13.2/demo</code>.</li>
+      </ul>
+
+      <h3>Требования к презентации (13.1)</h3>
+      <table>
+        <tr><td>Слайды</td><td>ровно три, без анимации, формат «Экран 16:9», альбомная ориентация</td></tr>
+        <tr><td>Слайд 1</td><td>название презентации (40 пт) и подзаголовок со сведениями об авторе (24 пт)</td></tr>
+        <tr><td>Слайд 2</td><td>заголовок (24 пт), два изображения и два блока текста (20 пт) по макету</td></tr>
+        <tr><td>Слайд 3</td><td>заголовок (24 пт), три изображения и три блока текста (20 пт) по макету</td></tr>
+        <tr><td>Шрифт</td><td>единый тип: рубленый, с засечками или моноширинный</td></tr>
+        <tr><td>Изображения</td><td>без искажения пропорций, не накладываются друг на друга и на текст</td></tr>
+      </table>
+
+      <h3>Требования к тексту (13.2)</h3>
+      <table>
+        <tr><td>Шрифт</td><td>14 пт, обычное начертание; выделены слова как в образце</td></tr>
+        <tr><td>Абзац</td><td>отступ первой строки 1 см, выравнивание по ширине, интервал между строками от одинарного до полуторного</td></tr>
+        <tr><td>Заголовок</td><td>прописными буквами, по центру</td></tr>
+        <tr><td>Таблица</td><td>уже основного текста и выровнена по центру; заголовок и второй столбец — по центру, первый столбец — по левому краю</td></tr>
+        <tr><td>Интервалы</td><td>до и после таблицы — от 14 до 24 пт, без пустых абзацев</td></tr>
+        <tr><td>Ошибки набора</td><td>не более пяти в тексте и не более трёх в таблице</td></tr>
+      </table>
+      <p class="muted small">Тренажёр не заменяет проверку экспертами, но устроен по критериям ФИПИ (демоверсия ОГЭ 2026). Проверка выполняется прямо в браузере, файлы никуда не отправляются.</p>
+    </div>
+  </dialog>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
