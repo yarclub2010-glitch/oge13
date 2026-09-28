@@ -9,7 +9,7 @@ import { checkPresentation } from './check131.js';
 import { checkDocument } from './check132.js';
 import { OfficeError, mimeOf } from './office.js';
 import { readZip, makeZip } from './zip.js';
-import { drawPicture } from './pictures.js';
+import { makeOdt } from './materials.js';
 import { describeMarks } from './textdiff.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -168,26 +168,10 @@ function mockupsHTML() {
   </div>`;
 }
 
+const picUrl = (t, name) => `materials/${t.id}/${name}.jpg`;
+
 function renderPics(t) {
-  const box = $('#pics');
-  box.innerHTML = '';
-  // Рисуем после показа страницы, чтобы не задерживать её появление
-  requestAnimationFrame(() => {
-    if (state.topic !== t) return;
-    for (const pic of t.pictures) {
-      const c = drawPicture(pic);
-      const small = document.createElement('canvas');
-      const k = 160 / Math.max(c.width, c.height);
-      small.width = Math.round(c.width * k);
-      small.height = Math.round(c.height * k);
-      small.getContext('2d').drawImage(c, 0, 0, small.width, small.height);
-      const img = new Image();
-      img.src = small.toDataURL('image/jpeg', 0.8);
-      img.alt = pic.name;
-      img.title = `${pic.name}.jpg`;
-      box.append(img);
-    }
-  });
+  $('#pics').innerHTML = t.pictures.map((name) => `<img src="${picUrl(t, name)}" alt="${name}" title="${name}.jpg" loading="lazy">`).join('');
 }
 
 $('#topic-select').addEventListener('change', (e) => openTopic(topicById(e.target.value)));
@@ -206,14 +190,17 @@ $('#btn-materials').addEventListener('click', async (e) => {
   try {
     const dir = t.folder + '/';
     const files = [];
-    const txt = t.text.map(([h, body]) => `${h}\r\n\r\n${body}`).join('\r\n\r\n\r\n');
-    files.push({ name: dir + `${t.folder}.txt`, data: new Uint8Array([0xef, 0xbb, 0xbf, ...new TextEncoder().encode(`${t.title}\r\n\r\n\r\n${txt}\r\n`)]) });
-    for (const pic of t.pictures) {
-      const blob = await new Promise((resolve) => drawPicture(pic).toBlob(resolve, 'image/jpeg', 0.88));
-      files.push({ name: dir + `${pic.name}.jpg`, data: new Uint8Array(await blob.arrayBuffer()), store: true });
+    files.push({ name: dir + `${t.folder}.odt`, data: await makeOdt(t), store: true });
+    for (const name of t.pictures) {
+      const r = await fetch(picUrl(t, name));
+      if (!r.ok) throw new Error(`нет файла ${name}.jpg`);
+      files.push({ name: dir + `${name}.jpg`, data: new Uint8Array(await r.arrayBuffer()), store: true });
     }
     const bytes = await makeZip(files);
     download(new Blob([bytes], { type: 'application/zip' }), `13.1_${t.folder}.zip`);
+  } catch (err) {
+    console.error(err);
+    alert('Не удалось собрать каталог: проверьте подключение к интернету и попробуйте ещё раз.');
   } finally {
     btn.disabled = false;
   }

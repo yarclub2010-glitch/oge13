@@ -12,6 +12,7 @@ import { checkDocument } from '../src/check132.js';
 import { tokenize, compareText } from '../src/textdiff.js';
 import { fontType, imageSize, contrast } from '../src/office.js';
 import { makeZip, readZip } from '../src/zip.js';
+import { makeOdt } from '../src/materials.js';
 
 const results = [];
 async function test(name, fn) {
@@ -35,7 +36,7 @@ const keys = (list) => list.map((e) => e.key).sort().join(',');
 
 // ---------- Задания ----------
 
-await test('Темы 13.1: у каждой текст, шесть картинок, ключевые слова', () => {
+await test('Темы 13.1: у каждой текст, шесть фотографий, ключевые слова', async () => {
   const ids = new Set();
   for (const t of TOPICS) {
     assert(!ids.has(t.id), `повтор id ${t.id}`);
@@ -43,6 +44,12 @@ await test('Темы 13.1: у каждой текст, шесть картино
     assert(/^[a-z-]+$/.test(t.id), `id ${t.id}`);
     assert(t.text.length >= 4, `${t.id}: мало текста`);
     assert(t.pictures.length === 6, `${t.id}: картинок ${t.pictures.length}`);
+    for (const name of t.pictures) {
+      const r = await fetch(`../materials/${t.id}/${name}.jpg`);
+      assert(r.ok, `${t.id}: нет файла ${name}.jpg`);
+      const size = imageSize(new Uint8Array(await r.arrayBuffer()));
+      assert(size && Math.max(size.w, size.h) <= 1024, `${t.id}: размер ${name}.jpg`);
+    }
     assert(t.keywords.length >= 3, `${t.id}: ключевые слова`);
     for (const [, body] of t.text) assert(t.keywords.some((k) => body.toLowerCase().includes(k)), `${t.id}: в разделе нет ключевых слов: ${body.slice(0, 30)}`);
   }
@@ -113,6 +120,16 @@ await test('ZIP: запись и чтение', async () => {
   const zip = readZip(bytes);
   assert((await zip.get('Тема/текст.txt').text()) === 'привет', 'текст');
   assert((await zip.get('a.bin').read()).length === 3, 'двоичный');
+});
+
+await test('Текст материалов 13.1: .odt, Times New Roman 14 пт, заголовки полужирные', async () => {
+  for (const t of TOPICS) {
+    const m = await readDocument(await makeOdt(t), `${t.id}.odt`);
+    const paras = m.body.filter((b) => b.type === 'p');
+    assert(m.format === 'odt' && paras.length === 1 + 2 * t.text.length, `${t.id}: абзацев ${paras.length}`);
+    assert(paras.every((p) => p.runs.every((r) => r.font === 'Times New Roman' && r.size === 14)), `${t.id}: шрифт`);
+    assert(paras[0].runs[0].bold && paras[1].runs[0].bold && !paras[2].runs[0].bold, `${t.id}: заголовки`);
+  }
 });
 
 await test('Раскладка объектов по рядам', () => {
