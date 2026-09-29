@@ -3,6 +3,7 @@
 // и загружает файл — он проверяется прямо в браузере по критериям ФИПИ.
 
 import { TOPICS, topicById, SAMPLES, sampleById, SLIDE_SPEC, parseMarks, plain } from './tasks.js';
+import { reportScore } from './platform.js';
 import { readPresentation } from './slides.js';
 import { readDocument } from './document.js';
 import { checkPresentation } from './check131.js';
@@ -84,6 +85,7 @@ function updateStatus(key, el) {
 }
 
 function saveScore(key, score) {
+  reportScore(13, key, score, 2);
   const best = state.scores[key];
   if (best === undefined || score > best) {
     state.scores[key] = score;

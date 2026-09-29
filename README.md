@@ -87,3 +87,8 @@ tools/make_fixtures.py — создаёт эти файлы через LibreOffi
 ```
 "C:\Program Files\LibreOffice\program\python.exe" tools\make_fixtures.py
 ```
+
+## Встраивание в платформу репетитора
+
+Если тренажёр открыт внутри страницы платформы с параметром `?platform=<адрес платформы>`,
+после каждой проверки он отправляет ей балл (`src/platform.js`). При обычном открытии ничего не меняется.
