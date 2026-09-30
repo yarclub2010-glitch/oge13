@@ -7,14 +7,16 @@
 //             или два слайда по теме без ошибок;
 //   0 баллов — всё остальное или файл не в формате .odp.
 
-import { SLIDE_SPEC } from './tasks.js';
+import { SLIDE_SPEC, layoutRows } from './tasks.js';
 import { fontType, FONT_TYPE_NAMES, contrast, round } from './office.js';
 import { plural } from './check132.js';
 
 const GROUPS = { structure: 'Структура', font: 'Шрифт', images: 'Изображения' };
 const TOL = 0.5; // допуск по размеру шрифта, пт
 
-export function checkPresentation(model, topic) {
+// layouts — макеты слайдов 2 и 3, например ['IT/TI', 'TIT/ITI'] (по умолчанию — макеты темы)
+export function checkPresentation(model, topic, layouts = topic?.layouts ?? ['IT/TI', 'TIT/ITI']) {
+  const wantRows = { 2: layoutRows(layouts[0]), 3: layoutRows(layouts[1]) };
   const errors = []; // { type, group, text, slide, shapes }
   const notes = [];
   const add = (type, group, text, extra = {}) => errors.push({ type, group, text, ...extra });
@@ -54,7 +56,7 @@ export function checkPresentation(model, topic) {
   let contentOk = true;
   for (const ps of parsed.slice(1, 3)) {
     const kind = ps.kind;
-    const want = SLIDE_SPEC.layouts[kind];
+    const want = wantRows[kind];
     const needT = want.join('').split('').filter((c) => c === 'T').length;
     const needI = want.join('').split('').filter((c) => c === 'I').length;
     const num = ps.slide.number;
@@ -71,7 +73,7 @@ export function checkPresentation(model, topic) {
       if (same(got, want)) {
         // как на макете
       } else if (same(got, mirror)) {
-        notes.push(`Слайд ${num}: изображения и текст расположены зеркально по сравнению с макетом (${got.join(' / ')} вместо ${want.join(' / ')}, где I — изображение, T — текст). Надёжнее повторить макет точно.`);
+        add('layout', 'structure', `Слайд ${num}: изображения и текст поменяны местами по сравнению с макетом. Получилось ${describeRows(got)}, а нужно ${describeRows(want)}.`, { slide: num });
       } else {
         add('layout', 'structure', `Слайд ${num}: объекты расположены не по макету. Получилось ${describeRows(got)}, а нужно ${describeRows(want)}.`, { slide: num });
       }

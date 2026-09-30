@@ -2,7 +2,7 @@
 // Ученик скачивает материалы (или смотрит образец), делает работу в LibreOffice
 // и загружает файл — он проверяется прямо в браузере по критериям ФИПИ.
 
-import { TOPICS, topicById, SAMPLES, sampleById, SLIDE_SPEC, parseMarks, plain } from './tasks.js';
+import { TOPICS, topicById, SAMPLES, sampleById, SLIDE_SPEC, LAYOUTS, layoutRows, isLayout, parseMarks, plain } from './tasks.js';
 import { reportScore } from './platform.js';
 import { readPresentation } from './slides.js';
 import { readDocument } from './document.js';
@@ -39,6 +39,7 @@ const store = {
 const state = {
   mode: '13.1',
   topic: TOPICS[0],
+  layouts: [...TOPICS[0].layouts], // макеты слайдов 2 и 3
   sample: SAMPLES[0],
   scores: store.get('scores', {}),
   urls: [], // ссылки на картинки в превью слайдов — освобождаем при новой проверке
@@ -60,7 +61,9 @@ function setMode(mode, pushHash = true) {
 }
 
 function currentHash() {
-  return state.mode === '13.1' ? `13.1/${state.topic.id}` : `13.2/${state.sample.id}`;
+  if (state.mode === '13.2') return `13.2/${state.sample.id}`;
+  const own = state.layouts.join() !== state.topic.layouts.join();
+  return `13.1/${state.topic.id}${own ? '/' + state.layouts.map((l) => l.replace('/', '-')).join('/') : ''}`;
 }
 
 function setHash(h) {
@@ -122,8 +125,15 @@ function fillTopicSelect() {
   sel.value = state.topic.id;
 }
 
-function openTopic(t, pushHash = true) {
+// Макеты слайдов 2 и 3 для темы: выбранные учеником или макеты темы по умолчанию
+function topicLayouts(t) {
+  const saved = store.get('layouts:' + t.id, null);
+  return saved && isLayout(2, saved[0]) && isLayout(3, saved[1]) ? saved : [...t.layouts];
+}
+
+function openTopic(t, pushHash = true, layouts = null) {
   state.topic = t;
+  state.layouts = layouts ?? topicLayouts(t);
   store.set('topic', t.id);
   $('#topic-select').value = t.id;
   $('#title-131').textContent = `Презентация «${t.title}»`;
@@ -144,7 +154,8 @@ function openTopic(t, pushHash = true) {
         </ul>
       </li>
     </ol>
-    ${mockupsHTML()}
+    <div id="mockups">${mockupsHTML()}</div>
+    ${layoutPickerHTML()}
     <p>На макетах слайдов существенным является наличие всех объектов, включая заголовки, их взаимное расположение. Выравнивание объектов, ориентация изображений выполняются произвольно в соответствии с замыслом автора работы и служат наилучшему раскрытию темы.</p>
     <p>В презентации должен использоваться единый тип шрифта (рубленый, с засечками или моноширинный).</p>
     <p>Размер шрифта для названия презентации на титульном слайде — ${SLIDE_SPEC.titleSize} пунктов, для подзаголовка на титульном слайде и заголовков слайдов — ${SLIDE_SPEC.headSize} пункта, для подзаголовков на втором и третьем слайдах и для основного текста — ${SLIDE_SPEC.textSize} пунктов.</p>
@@ -154,21 +165,76 @@ function openTopic(t, pushHash = true) {
   if (pushHash && state.mode === '13.1') setHash(currentHash());
 }
 
-// Макеты слайдов, как в демоверсии
+// Макеты слайдов, как в условии задания: сетка из двух рядов под заголовком
 function mockupsHTML() {
   const slide = (inner) => `<svg viewBox="0 0 64 36" aria-hidden="true"><rect class="mk-slide" x="0.3" y="0.3" width="63.4" height="35.4" rx="0.8"/>${inner}</svg>`;
   const img = (x, y, w, h) => `<rect class="mk-img" x="${x}" y="${y}" width="${w}" height="${h}"/><circle class="mk-img-sun" cx="${x + w * 0.75}" cy="${y + h * 0.3}" r="${h * 0.14}"/><path class="mk-img-hill" d="M${x} ${y + h}L${x + w * 0.35} ${y + h * 0.45}L${x + w * 0.6} ${y + h * 0.75}L${x + w * 0.8} ${y + h * 0.55}L${x + w} ${y + h}Z"/>`;
-  const box = (x, y, w, h, label) => `<rect class="mk-box" x="${x}" y="${y}" width="${w}" height="${h}"/><text class="mk-text" x="${x + 1.2}" y="${y + 4}">${label}</text>`;
+  const box = (x, y, w, h, lines) => `<rect class="mk-box" x="${x}" y="${y}" width="${w}" height="${h}"/>${lines.map((l, i) => `<text class="mk-text" x="${x + 1.2}" y="${y + 4 + i * 3.6}">${l}</text>`).join('')}`;
   const head = '<line class="mk-line" x1="12" y1="4" x2="52" y2="4"/><line class="mk-line" x1="14" y1="6.5" x2="50" y2="6.5"/>';
-  const s1 = slide(`${box(8, 8, 48, 8, 'Название презентации')}${box(12, 21, 40, 6, 'Информация об авторе')}`);
-  const s2 = slide(`${head}${img(5, 10, 16, 10)}${box(25, 11, 34, 8, 'Текстовый блок')}${box(5, 24, 34, 8, 'Текстовый блок')}${img(43, 23, 16, 10)}`);
-  const s3 = slide(`${head}${box(4, 11, 15, 8, 'Текст')}${img(24.5, 10.5, 15, 9)}${box(45, 11, 15, 8, 'Текст')}${img(4, 23, 15, 9)}${box(24.5, 23.5, 15, 8, 'Текст')}${img(45, 23, 15, 9)}`);
+  const grid = (id) => {
+    const rows = layoutRows(id);
+    let out = head;
+    rows.forEach((row, ri) => {
+      const n = row.length;
+      const gap = n === 2 ? 4 : 3;
+      const w = (56 - gap * (n - 1)) / n;
+      const y = ri === 0 ? 10.5 : 23;
+      [...row].forEach((c, ci) => {
+        const x = 4 + ci * (w + gap);
+        out += c === 'I' ? img(x + (n === 2 ? w * 0.2 : 0.5), y, n === 2 ? w * 0.6 : w - 1, 10) : box(x, y + 0.8, w, 8.4, n === 2 ? ['Текстовый блок'] : ['Текстовый', 'блок']);
+      });
+    });
+    return slide(out);
+  };
+  const s1 = slide(`${box(8, 8, 48, 8, ['Название презентации'])}${box(12, 21, 40, 6, ['Информация об авторе'])}`);
   return `<div class="mockups">
     <figure class="mockup">${s1}<figcaption>Макет 1-го слайда<br>Тема презентации</figcaption></figure>
-    <figure class="mockup">${s2}<figcaption>Макет 2-го слайда<br>Основная информация</figcaption></figure>
-    <figure class="mockup">${s3}<figcaption>Макет 3-го слайда<br>Дополнительная информация</figcaption></figure>
+    <figure class="mockup">${grid(state.layouts[0])}<figcaption>Макет 2-го слайда<br>Основная информация</figcaption></figure>
+    <figure class="mockup">${grid(state.layouts[1])}<figcaption>Макет 3-го слайда<br>Дополнительная информация</figcaption></figure>
   </div>`;
 }
+
+const LAYOUT_WORDS = { I: 'картинка', T: 'текст' };
+const layoutName = (id) => layoutRows(id).map((r) => [...r].map((c) => LAYOUT_WORDS[c]).join(' — ')).join(' / ');
+
+// Выбор макетов: в вариантах ОГЭ встречаются разные, и слайды 2 и 3 сочетаются независимо
+function layoutPickerHTML() {
+  const sel = (n) => `<label>Макет слайда ${n}
+      <select id="layout-${n}">${LAYOUTS[n].map((l) => `<option value="${l.id}" title="${esc(l.where)}"${l.id === state.layouts[n - 2] ? ' selected' : ''}>${layoutName(l.id)}</option>`).join('')}</select>
+    </label>`;
+  return `<div class="layout-picker">
+    ${sel(2)}${sel(3)}
+    <div class="btn-row">
+      <button class="btn small" id="btn-layout-random" title="Выбрать другие макеты из встречающихся в вариантах ОГЭ">Другие макеты</button>
+      <button class="btn small ghost" id="btn-layout-reset" title="Макеты, заданные для этой темы"${state.layouts.join() === state.topic.layouts.join() ? ' disabled' : ''}>Как в теме</button>
+    </div>
+    <p class="muted small">В вариантах ОГЭ встречаются разные макеты: 4 для второго слайда и 7 для третьего. Проверка идёт по макетам, показанным выше.</p>
+  </div>`;
+}
+
+function setLayouts(layouts) {
+  state.layouts = layouts;
+  store.set('layouts:' + state.topic.id, layouts);
+  $('#mockups').innerHTML = mockupsHTML();
+  $('.layout-picker').outerHTML = layoutPickerHTML();
+  $('#result-131').hidden = true;
+  if (state.mode === '13.1') setHash(currentHash());
+}
+
+$('#text-131').addEventListener('change', (e) => {
+  if (e.target.id === 'layout-2') setLayouts([e.target.value, state.layouts[1]]);
+  if (e.target.id === 'layout-3') setLayouts([state.layouts[0], e.target.value]);
+});
+$('#text-131').addEventListener('click', (e) => {
+  if (e.target.id === 'btn-layout-reset') setLayouts([...state.topic.layouts]);
+  if (e.target.id === 'btn-layout-random') {
+    const pick = (n, cur) => {
+      const list = LAYOUTS[n].map((l) => l.id).filter((id) => id !== cur);
+      return list[Math.floor(Math.random() * list.length)];
+    };
+    setLayouts([pick(2, state.layouts[0]), pick(3, state.layouts[1])]);
+  }
+});
 
 const picUrl = (t, name) => `materials/${t.id}/${name}.jpg`;
 
@@ -376,7 +442,7 @@ async function checkPresentationFile(bytes, name, switched) {
     openTopic(byTitle[0]);
     note += `${note ? ' ' : ''}Презентация на тему «${byTitle[0].title}» — открыл эту тему.`;
   }
-  const res = checkPresentation(model, state.topic);
+  const res = checkPresentation(model, state.topic, state.layouts);
   const wrongFormat = model.format !== 'odp';
   const score = wrongFormat ? 0 : res.score;
   saveScore(`13.1/${state.topic.id}`, score);
@@ -595,11 +661,14 @@ window.addEventListener('keydown', (e) => {
 
 function applyHash() {
   const h = decodeURIComponent(location.hash.slice(1));
-  const m = /^13\.([12])(?:\/([a-z-]+))?$/.exec(h);
+  // #13.1/тема или #13.1/тема/IT-TI/TIT-ITI — с макетами слайдов 2 и 3
+  const m = /^13\.([12])(?:\/([a-z-]+))?(?:\/([IT]+-[IT]+)\/([IT]+-[IT]+))?$/.exec(h);
   if (!m) return false;
   if (m[1] === '1') {
     setMode('13.1', false);
-    openTopic(topicById(m[2]) ?? state.topic, false);
+    const l2 = m[3]?.replace('-', '/');
+    const l3 = m[4]?.replace('-', '/');
+    openTopic(topicById(m[2]) ?? state.topic, false, l2 && isLayout(2, l2) && isLayout(3, l3) ? [l2, l3] : null);
   } else {
     setMode('13.2', false);
     openSample(sampleById(m[2]) ?? state.sample, false);

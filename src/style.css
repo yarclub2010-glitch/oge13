@@ -491,6 +491,13 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .mk-line { stroke: #5f6b63; stroke-width: 0.9; }
 .mk-text { font: 3.3px var(--font); fill: #1d2320; }
 
+.layout-picker { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: flex-end; margin: -4px 0 12px; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.layout-picker label { display: flex; flex-direction: column; gap: 3px; font-size: 13px; color: var(--muted); flex: 1 1 200px; }
+.layout-picker select { font: inherit; font-size: 13.5px; color: var(--ink); background: var(--panel); border: 1px solid var(--line-strong); border-radius: 6px; padding: 5px 6px; }
+.layout-picker .btn-row { flex: 1 1 100%; }
+.layout-picker .btn-row > .btn { flex: 0 0 auto; }
+.layout-picker p { margin: 0; flex-basis: 100%; }
+
 /* ---------- Иллюстрации из каталога ---------- */
 
 .pics { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }

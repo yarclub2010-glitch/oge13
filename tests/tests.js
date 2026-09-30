@@ -4,7 +4,7 @@
 // Файлы в tests/fixtures сохранены настоящим LibreOffice (tools/make_fixtures.py):
 // __ok — верное решение, остальные — типичные ошибки.
 
-import { TOPICS, SAMPLES, topicById, sampleById, parseMarks, plain } from '../src/tasks.js';
+import { TOPICS, SAMPLES, topicById, sampleById, parseMarks, plain, LAYOUTS, layoutRows } from '../src/tasks.js';
 import { readPresentation } from '../src/slides.js';
 import { readDocument } from '../src/document.js';
 import { checkPresentation, rowsPattern, distortion } from '../src/check131.js';
@@ -144,6 +144,8 @@ await test('Раскладка объектов по рядам', () => {
 // ---------- 13.1: файлы LibreOffice ----------
 
 const bear = topicById('bear');
+// Презентации bear__* сделаны по макетам демоверсии 2026
+const FIXTURE_LAYOUTS = ['IT/TI', 'TIT/ITI'];
 const P = [
   // файл, баллы, типы ошибок
   ['bear__ok.odp', 2, ''],
@@ -161,9 +163,44 @@ const P = [
 for (const [file, score, errs] of P) {
   await test(`13.1: ${file} — ${score} балл(а)`, async () => {
     const model = await readPresentation(await fixture(file), file);
-    const res = checkPresentation(model, bear);
+    const res = checkPresentation(model, bear, FIXTURE_LAYOUTS);
     assert(res.score === score, `баллы ${res.score}, ожидалось ${score}: ${res.errors.map((e) => e.text).join(' | ')}`);
     assert(types(res) === errs, `ошибки «${types(res)}», ожидалось «${errs}»`);
+  });
+}
+
+await test('Макеты слайдов: у каждой темы свои, все из списка, сетки 2 ряда', () => {
+  assert(LAYOUTS[2].length === 4 && LAYOUTS[3].length === 7, 'число макетов');
+  for (const n of [2, 3]) {
+    for (const { id } of LAYOUTS[n]) {
+      const rows = layoutRows(id);
+      const all = rows.join('');
+      assert(rows.length === 2 && rows.every((r) => r.length === n), `${id}: сетка`);
+      assert(all.split('I').length - 1 === n && all.split('T').length - 1 === n, `${id}: по ${n} картинки и текста`);
+    }
+  }
+  for (const t of TOPICS) {
+    assert(LAYOUTS[2].some((l) => l.id === t.layouts[0]) && LAYOUTS[3].some((l) => l.id === t.layouts[1]), `${t.id}: макеты`);
+  }
+});
+
+// Презентации, сделанные по разным макетам: верны только со своими макетами
+const LAYOUT_FILES = ['IT-IT_ITI-TIT', 'TI-IT_III-TTT', 'TI-TI_TTT-III', 'IT-TI_TTI-IIT', 'IT-IT_ITT-TII', 'TI-IT_TIT-ITI', 'TI-TI_IIT-TTI'];
+for (const name of LAYOUT_FILES) {
+  await test(`13.1: макеты ${name.replace('_', ' + ').replace(/-/g, '/')}`, async () => {
+    const model = await readPresentation(await fixture(`layout__${name}.odp`), name);
+    const own = name.split('_').map((l) => l.replace('-', '/'));
+    const ok = checkPresentation(model, bear, own);
+    assert(ok.score === 2, `со своими макетами ${ok.score}: ${ok.errors.map((e) => e.text).join(' | ')}`);
+    // Любой другой макет того же слайда — ошибка расположения
+    for (const n of [2, 3]) {
+      for (const { id } of LAYOUTS[n]) {
+        if (id === own[n - 2]) continue;
+        const other = n === 2 ? [id, own[1]] : [own[0], id];
+        const res = checkPresentation(model, bear, other);
+        assert(res.score === 1 && res.errors.map((e) => e.type).join() === 'layout', `${other.join(' + ')}: ${res.score} ${res.errors.map((e) => e.type).join()}`);
+      }
+    }
   });
 }
 

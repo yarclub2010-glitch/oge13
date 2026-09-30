@@ -137,6 +137,57 @@ def presentation(case):
     return doc
 
 
+# Все макеты слайдов 2 и 3, которые встречаются в вариантах (см. LAYOUTS в src/tasks.js)
+LAYOUTS2 = ['IT/IT', 'TI/IT', 'TI/TI', 'IT/TI']
+LAYOUTS3 = ['ITI/TIT', 'III/TTT', 'TTT/III', 'TTI/IIT', 'ITT/TII', 'TIT/ITI', 'IIT/TTI']
+
+
+def fill_grid(doc, page, layout, texts, pics):
+    """Раскладывает картинки и тексты по сетке макета: ряды через «/», I — картинка, T — текст."""
+    rows = layout.split('/')
+    n = len(rows[0])
+    xs = [1.5, 14.5] if n == 2 else [1, 10, 19]
+    cell = 12 if n == 2 else 8
+    iw, ih = (7.2, 5.4) if n == 2 else (6.4, 4.8)
+    tops = [3.6, 9.8] if n == 2 else [3.6, 10.2]
+    ti = pi = 0
+    for ri, row in enumerate(rows):
+        for ci, c in enumerate(row):
+            if c == 'I':
+                image(doc, page, xs[ci], tops[ri], iw, ih, pics[pi])
+                pi += 1
+            else:
+                textbox(doc, page, xs[ci], tops[ri] + 0.6, cell - 0.4, texts[ti])
+                ti += 1
+
+
+def grid_presentation(l2, l3):
+    doc = new_doc(desktop, 'simpress')
+    pages = doc.DrawPages
+    p1 = pages.getByIndex(0)
+    p1.Width, p1.Height = 28000, 15750
+    p1.Layout = 0
+    set_text(p1.getByIndex(0), 'Бурый медведь', 40)
+    set_text(p1.getByIndex(1), 'Участник ОГЭ 1234567890', 24)
+    p2 = pages.insertNewByIndex(0)
+    p2.Layout = 19
+    set_text(p2.getByIndex(0), 'Внешний вид и ареал', 24)
+    fill_grid(doc, p2, l2, TEXTS[:2], PICS[:2])
+    p3 = pages.insertNewByIndex(1)
+    p3.Layout = 19
+    set_text(p3.getByIndex(0), 'Образ жизни и питание', 24)
+    fill_grid(doc, p3, l3, TEXTS[2:], PICS[2:5])
+    return doc
+
+
+def make_layouts():
+    for i, l3 in enumerate(LAYOUTS3):
+        l2 = LAYOUTS2[i % len(LAYOUTS2)]
+        doc = grid_presentation(l2, l3)
+        save(doc, os.path.join(OUT, f"layout__{l2.replace('/', '-')}_{l3.replace('/', '-')}.odp"), 'impress8')
+        doc.close(True)
+
+
 def make_presentations():
     for case in ['ok', 'distorted', 'sizes', 'fonts', 'two', 'layout', 'overlap', 'four', 'transition']:
         doc = presentation(case)
@@ -269,5 +320,6 @@ def make_documents():
 
 if __name__ == '__main__':
     make_presentations()
+    make_layouts()
     make_documents()
     print('Готово:', ', '.join(sorted(os.listdir(OUT))))
