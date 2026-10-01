@@ -11,6 +11,17 @@ git diff --cached --quiet && (
   goto done
 )
 
+echo.
+echo Будут опубликованы на GitHub ^(сайт открыт всем^):
+git status --short
+echo.
+set /p ok="Всё верно, отправлять? (д/н): "
+if /i not "%ok%"=="д" if /i not "%ok%"=="y" (
+  git reset -q
+  echo Отменено, ничего не отправлено.
+  goto done
+)
+
 set /p msg="Что изменилось (Enter - без описания): "
 if "%msg%"=="" set msg=Обновление %date% %time:~0,5%
 git commit -q -m "%msg%" || goto error

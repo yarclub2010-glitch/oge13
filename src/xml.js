@@ -62,17 +62,22 @@ export function parseXML(src) {
       if (stack.length > 1) stack[stack.length - 1].children.push(decode(txt));
     }
     if (src.startsWith('<!--', lt)) {
-      i = src.indexOf('-->', lt) + 3;
+      const e = src.indexOf('-->', lt);
+      if (e < 0) throw new Error('bad-xml'); // незакрытый комментарий — иначе вечный цикл
+      i = e + 3;
       continue;
     }
     if (src.startsWith('<![CDATA[', lt)) {
       const e = src.indexOf(']]>', lt);
+      if (e < 0) throw new Error('bad-xml');
       stack[stack.length - 1].children.push(src.slice(lt + 9, e));
       i = e + 3;
       continue;
     }
     if (src[lt + 1] === '?' || src[lt + 1] === '!') {
-      i = src.indexOf('>', lt) + 1;
+      const e = src.indexOf('>', lt);
+      if (e < 0) throw new Error('bad-xml');
+      i = e + 1;
       continue;
     }
     tagRe.lastIndex = lt;

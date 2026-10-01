@@ -86,9 +86,29 @@ export async function makeZip(files) {
   return out;
 }
 
+const MAX_UNPACKED = 100 * 1024 * 1024; // настоящие файлы задания — единицы мегабайт
+
 async function inflateRaw(bytes) {
-  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+  const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  const parts = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > MAX_UNPACKED) {
+      await reader.cancel();
+      throw new Error('zip-too-big'); // zip-бомба: распаковка разрастается до гигабайт
+    }
+    parts.push(value);
+  }
+  const out = new Uint8Array(total);
+  let p = 0;
+  for (const a of parts) {
+    out.set(a, p);
+    p += a.length;
+  }
+  return out;
 }
 
 // Uint8Array → Map(имя файла → { read(): Promise<Uint8Array>, text(): Promise<string> })

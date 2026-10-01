@@ -3,15 +3,27 @@
 // При обычном открытии ничего не происходит.
 const target = (() => {
   if (window.parent === window) return null;
-  const origin = new URLSearchParams(location.search).get('platform');
+  const raw = new URLSearchParams(location.search).get('platform');
+  if (!raw) return null;
   try {
-    return origin ? new URL(origin).origin : null;
+    const url = new URL(raw);
+    // Только настоящий адрес сайта: data:, javascript:, file: дают origin "null"
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+    return url.origin;
   } catch {
     return null;
   }
 })();
 
+// Внутри платформы готовое решение не показываем: балл идёт в домашнее задание
+export const inPlatform = target !== null;
+if (inPlatform) document.documentElement.classList.add('in-platform');
+
 export function reportScore(task, taskId, score, max) {
   if (!target) return;
-  window.parent.postMessage({ type: 'oge-trainer-result', task, taskId, score, max }, target);
+  try {
+    window.parent.postMessage({ type: 'oge-trainer-result', task, taskId, score, max }, target);
+  } catch {
+    // Сообщить платформе не удалось — проверка и балл в самом тренажёре от этого не страдают
+  }
 }

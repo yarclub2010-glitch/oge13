@@ -112,7 +112,7 @@ function odtPara(p, styles) {
       }
       if (ch.ns !== NS.text) continue;
       if (ch.local === 'span' || ch.local === 'a') collect(ch, [styles.chain('text', attr(ch, NS.text, 'style-name')), ...spanChains]);
-      else if (ch.local === 's') addRun(runs, ' '.repeat(Number(attr(ch, NS.text, 'c') || 1)), spanChains);
+      else if (ch.local === 's') addRun(runs, ' '.repeat(Math.min(Number(attr(ch, NS.text, 'c')) || 1, 1000)), spanChains);
       else if (ch.local === 'tab') addRun(runs, '\t', spanChains);
       else if (ch.local === 'line-break') {
         breaks++;

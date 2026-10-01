@@ -14,6 +14,9 @@ import { makeOdt } from './materials.js';
 import { describeMarks } from './textdiff.js';
 
 const $ = (sel) => document.querySelector(sel);
+// Цвет и шрифт из файла ученика попадают в стиль — пропускаем только обычные значения
+const safeColor = (c, def) => (/^(#[0-9a-f]{3,8}|[a-z]{3,20}|rgba?\([\d.,\s%]+\))$/i.test(String(c ?? '')) ? c : def);
+const safeFont = (f) => String(f ?? 'sans-serif').replace(/['"\\;:()<>{}]/g, '').slice(0, 60) || 'sans-serif';
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // ---------- Хранилище (может быть недоступно, например в приватном режиме) ----------
@@ -399,7 +402,14 @@ function show(where, html) {
   box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
+const MAX_FILE = 50 * 1024 * 1024;
+
 async function checkFile(file) {
+  if (file.size > MAX_FILE) {
+    show(state.mode === '13.1' ? '#result-131' : '#result-132',
+      '<div class="alert">Файл больше 50 МБ — это не работа по заданию 13. Выберите свою презентацию или документ.</div>');
+    return;
+  }
   const bytes = new Uint8Array(await file.arrayBuffer());
   const kind = await kindOf(bytes, file.name);
   let switched = '';
@@ -489,13 +499,13 @@ function slidesPreview(model, res) {
         const u = urlOf.get(sh.image.path);
         out += u ? `<image href="${u}" ${box(sh)} preserveAspectRatio="none"/>` : `<rect ${box(sh)} fill="#cfe3f5"/>`;
       } else if (sh.kind === 'text') {
-        if (sh.fill) out += `<rect ${box(sh)} fill="${esc(sh.fill)}"/>`;
+        if (sh.fill) out += `<rect ${box(sh)} fill="${esc(safeColor(sh.fill, '#fff'))}"/>`;
         const centered = sh.role === 'title' || sh.role === 'subtitle';
-        const paras = sh.paragraphs.map((p) => `<p style="text-align:${centered ? 'center' : 'left'}">${p.runs.map((r) => `<span style="font-size:${((r.size * (sh.fontScale ?? 1) * 2.54 * K) / 72).toFixed(2)}px;font-family:'${esc(r.font ?? 'sans-serif')}',sans-serif;${r.bold ? 'font-weight:700;' : ''}${r.italic ? 'font-style:italic;' : ''}${r.underline ? 'text-decoration:underline;' : ''}color:${esc(r.color ?? '#000')}">${esc(r.text)}</span>`).join('') || '&nbsp;'}</p>`).join('');
+        const paras = sh.paragraphs.map((p) => `<p style="text-align:${centered ? 'center' : 'left'}">${p.runs.map((r) => `<span style="font-size:${((r.size * (sh.fontScale ?? 1) * 2.54 * K) / 72).toFixed(2)}px;font-family:'${esc(safeFont(r.font))}',sans-serif;${r.bold ? 'font-weight:700;' : ''}${r.italic ? 'font-style:italic;' : ''}${r.underline ? 'text-decoration:underline;' : ''}color:${esc(safeColor(r.color, '#000'))}">${esc(r.text)}</span>`).join('') || '&nbsp;'}</p>`).join('');
         out += `<foreignObject ${box(sh)}><div xmlns="http://www.w3.org/1999/xhtml" class="sp-text" style="padding:${0.125 * K}px ${0.25 * K}px;${centered ? 'display:flex;flex-direction:column;justify-content:center;height:100%;' : ''}">${paras}</div></foreignObject>`;
         out += `<rect class="sp-frame" ${box(sh)}/>`;
       } else {
-        out += `<rect ${box(sh)} fill="${esc(sh.fill ?? 'rgba(0,0,0,0.06)')}"/>`;
+        out += `<rect ${box(sh)} fill="${esc(safeColor(sh.fill, 'rgba(0,0,0,0.06)'))}"/>`;
       }
       if (bad.has(sh)) out += `<rect class="sp-bad" ${box(sh)}/>`;
       return out;
@@ -660,7 +670,12 @@ window.addEventListener('keydown', (e) => {
 });
 
 function applyHash() {
-  const h = decodeURIComponent(location.hash.slice(1));
+  let h;
+  try {
+    h = decodeURIComponent(location.hash.slice(1));
+  } catch {
+    return; // испорченная ссылка — остаёмся на текущем задании
+  }
   // #13.1/тема или #13.1/тема/IT-TI/TIT-ITI — с макетами слайдов 2 и 3
   const m = /^13\.([12])(?:\/([a-z-]+))?(?:\/([IT]+-[IT]+)\/([IT]+-[IT]+))?$/.exec(h);
   if (!m) return false;
